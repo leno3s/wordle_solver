@@ -17,15 +17,17 @@ const main = async () => {
     const words = checker.getWords();
     console.log("Remain words: " + words.length);
     console.log(words);
-    if(words.length === 1) {
+    if (words.length === 1) {
       console.log("Success!");
       process.exit(0);
     }
-    if(words.length === 0) {
-      console.log("Failed.")
+    if (words.length === 0) {
+      console.log("Failed.");
       process.exit(0);
     }
   }
+  console.log("Failed.");
+  process.exit(0);
 };
 
 async function getLine(io: readline.Interface, question: string) {
@@ -50,9 +52,15 @@ class Checker {
     for (let i = 0; i < 5; i++) {
       if (result.status[i] === "2") {
         this.matchedChars.push(new Pair(result.word[i], i));
+        this.wordList = this.wordList.filter(
+          (word) => word[i] === result.word[i]
+        );
       }
       if (result.status[i] === "1") {
         this.usedChars.push(new Pair(result.word[i], i));
+        this.wordList = this.wordList.filter(
+          (word) => word[i] !== result.word[i] && word.includes(result.word[i])
+        );
       }
       if (result.status[i] === "0") {
         if (
@@ -62,24 +70,12 @@ class Checker {
           )
         ) {
           this.notUsedChars.push(result.word[i]);
+          this.wordList = this.wordList.filter(
+            (word) => !word.includes(result.word[i])
+          );
         }
       }
     }
-    this.wordList = this.wordList.filter((word) => {
-      if (this.matchedChars.some((pair) => word[pair.index] !== pair.char)) {
-        return false;
-      }
-      if (
-        this.usedChars.some((pair) => word[pair.index] !== pair.char) &&
-        !this.usedChars.some((pair) => word.includes(pair.char))
-      ) {
-        return false;
-      }
-      if (this.notUsedChars.some((char) => word.includes(char))) {
-        return false;
-      }
-      return true;
-    });
   }
 
   getWords() {
